@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Multi-Model Weather</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:#0f1117;color:#e8eaf0;padding:1.5rem}
+h1{font-size:1.3rem;font-weight:600;margin-bottom:3px}
+.sub{font-size:.75rem;color:#6b7280;margin-bottom:1.2rem}
+.row{display:flex;gap:8px;margin-bottom:1rem}
+input[type=text]{flex:1;background:#1c1f2e;border:1px solid #2d3148;border-radius:8px;padding:9px 14px;color:#e8eaf0;font-size:.9rem;outline:none}
+.btn{background:#4f6ef7;color:#fff;border:none;border-radius:8px;padding:9px 20px;font-weight:500;cursor:pointer;font-size:.85rem;white-space:nowrap}
+.btn:disabled{background:#2d3148;color:#6b7280;cursor:default}
+.card-box{background:#1c1f2e;border:1px solid #2d3148;border-radius:10px;padding:1rem;margin-bottom:1rem}
+.section-label{font-size:.7rem;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:1px;margin-bottom:.7rem}
+.key-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px}
+.key-field label{display:block;font-size:.7rem;color:#6b7280;margin-bottom:3px}
+.key-field input{width:100%;background:#0f1117;border:1px solid #2d3148;border-radius:6px;padding:6px 10px;color:#e8eaf0;font-size:.8rem;outline:none}
+.key-saved{font-size:.65rem;color:#22c55e;margin-top:4px;opacity:0;transition:opacity .3s}
+.key-saved.show{opacity:1}
+.toggles{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:1rem}
+.src-toggle{padding:5px 14px;border-radius:20px;font-size:.75rem;cursor:pointer;font-weight:500;border:1px solid}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-bottom:1rem}
+.model-card{background:#1c1f2e;border:1px solid #2d3148;border-radius:10px;padding:1rem}
+.src-lbl{font-size:.7rem;font-weight:600;margin-bottom:5px;display:flex;align-items:center;gap:5px}
+.pip{width:7px;height:7px;border-radius:50%;display:inline-block;flex-shrink:0}
+.big-temp{font-size:1.9rem;font-weight:700;color:#e8eaf0}
+.cond{font-size:.78rem;color:#9ca3af}
+.hilo{font-size:.7rem;color:#4b5563;margin-top:5px}
+.model-card.err{border-color:#3d1a1a}
+.err-msg{font-size:.8rem;color:#ef4444}
+.chart-tabs{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:1rem}
+.tab-group{display:flex;gap:6px}
+.tab{padding:5px 14px;border-radius:6px;font-size:.75rem;cursor:pointer;border:1px solid #2d3148;background:transparent;color:#6b7280}
+.tab.on{border-color:#4f6ef7;background:#252840;color:#e8eaf0}
+.chart-wrap{position:relative;width:100%;height:250px}
+table{width:100%;border-collapse:collapse;font-size:.78rem}
+th{padding:7px 10px;border-bottom:1px solid #2d3148;font-size:.7rem;text-transform:uppercase;color:#4b5563;font-weight:600}
+th.day-col{text-align:left}
+td{padding:8px 10px;border-bottom:1px solid #16192a;text-align:center;color:#9ca3af}
+td.day-cell{text-align:left}
+.hi{color:#f87171}.lo{color:#60a5fa}
+.status{font-size:.75rem;color:#4b5563;text-align:center;padding:.5rem 0}
+.progress{font-size:.78rem;color:#6b7280;margin-bottom:.5rem;min-height:1.2rem;text-align:center}
+.top-row{display:flex;gap:10px;margin-bottom:1rem;align-items:flex-start}
+.top-row .cards{flex:1;margin-bottom:0}
+.map-box{background:#1c1f2e;border:1px solid #2d3148;border-radius:10px;overflow:hidden;width:220px;min-width:220px;flex-shrink:0}
+.map-box iframe{display:block;width:100%;height:200px;border:none;filter:invert(1) hue-rotate(180deg) brightness(0.9) contrast(1.1)}
+.map-label{font-size:.68rem;color:#6b7280;padding:6px 10px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media(max-width:700px){.top-row{flex-direction:column}.map-box{width:100%;min-width:auto}.map-box iframe{height:160px}}
+</style>
+</head>
+<body>
+<h1>Multi-Model Weather</h1>
+<p class="sub">Compare Open-Meteo · NWS · Visual Crossing · Tomorrow.io · Windy</p>
+
+<div class="row">
+  <input type="text" id="cityIn" value="New York, NY" placeholder="City, e.g. New York, NY">
+  <button class="btn" id="fetchBtn" onclick="fetchAll()">Get Forecast</button>
+</div>
+
+<div class="card-box">
+  <div class="section-label">API Keys <span id="keyStatus" style="font-weight:400;text-transform:none;letter-spacing:0;color:#4b5563"></span></div>
+  <div class="key-grid">
+    <div class="key-field"><label>Visual Crossing</label><input type="password" id="vcKey" placeholder="Paste key…"><div class="key-saved" id="vcSaved">Saved</div></div>
+    <div class="key-field"><label>Tomorrow.io</label><input type="password" id="tioKey" placeholder="Paste key…"><div class="key-saved" id="tioSaved">Saved</div></div>
+    <div class="key-field"><label>Windy</label><input type="password" id="windyKey" placeholder="Paste key…"><div class="key-saved" id="windySaved">Saved</div></div>
+  </div>
+</div>
+
+<div class="toggles" id="toggles"></div>
+<div class="progress" id="progress"></div>
+<div class="top-row">
+  <div class="cards" id="cards"></div>
+  <div class="map-box" id="mapBox" style="display:none">
+    <iframe id="mapFrame" loading="lazy"></iframe>
+    <div class="map-label" id="mapLabel"></div>
+  </div>
+</div>
+
+<div class="card-box">
+  <div class="chart-tabs">
+    <div class="tab-group" id="typeTabs">
+      <button class="tab on" onclick="setChartType('temp',this)">Temperature</button>
+      <button class="tab" onclick="setChartType('precip',this)">Precipitation</button>
+    </div>
+    <div class="tab-group" id="horizonTabs">
+      <button class="tab on" onclick="setHorizon(24,this)">24h</button>
+      <button class="tab" onclick="setHorizon(48,this)">48h</button>
+      <button class="tab" onclick="setHorizon(168,this)">7 days</button>
+    </div>
+  </div>
+  <div class="chart-wrap"><canvas id="mainChart"></canvas></div>
+</div>
+
+<div class="card-box" id="tableBox" style="display:none;overflow-x:auto">
+  <div class="section-label">7-day comparison</div>
+  <div id="tableWrap"></div>
+</div>
+
+<div class="status" id="status">Enter a city and click Get Forecast</div>
+
+<script>
+const SOURCES=[
+  {id:'om',    label:'Open-Meteo',       color:'#4f6ef7'},
+  {id:'nws',   label:'NWS',              color:'#22c55e'},
+  {id:'vc',    label:'Visual Crossing',   color:'#f59e0b'},
+  {id:'tio',   label:'Tomorrow.io',       color:'#a78bfa'},
+  {id:'windy', label:'Windy',             color:'#38bdf8'},
+];
+let enabled=new Set(SOURCES.map(s=>s.id));
+let chartType='temp',horizon=24,chartInst=null,allData={};
+let saveTimeout=null;
+
+/* ── Built-in city coords (fallback when geocoding API is unreachable) ── */
+const CITY_DB=[
+  {names:['new york','nyc','manhattan','new york city','new york, ny'],lat:40.7128,lon:-74.006,name:'New York, NY'},
+  {names:['croton','croton-on-hudson','croton on hudson','croton-on-hudson, ny'],lat:41.2084,lon:-73.8912,name:'Croton-on-Hudson, NY'},
+  {names:['los angeles','la','los angeles, ca'],lat:34.0522,lon:-118.2437,name:'Los Angeles, CA'},
+  {names:['chicago','chicago, il'],lat:41.8781,lon:-87.6298,name:'Chicago, IL'},
+  {names:['san francisco','sf','san francisco, ca'],lat:37.7749,lon:-122.4194,name:'San Francisco, CA'},
+  {names:['boston','boston, ma'],lat:42.3601,lon:-71.0589,name:'Boston, MA'},
+  {names:['denver','denver, co'],lat:39.7392,lon:-104.9903,name:'Denver, CO'},
+  {names:['seattle','seattle, wa'],lat:47.6062,lon:-122.3321,name:'Seattle, WA'},
+  {names:['miami','miami, fl'],lat:25.7617,lon:-80.1918,name:'Miami, FL'},
+  {names:['philadelphia','philly','philadelphia, pa'],lat:39.9526,lon:-75.1652,name:'Philadelphia, PA'},
+  {names:['washington','dc','washington dc','washington, dc'],lat:38.9072,lon:-77.0369,name:'Washington, DC'},
+  {names:['atlanta','atlanta, ga'],lat:33.749,lon:-84.388,name:'Atlanta, GA'},
+  {names:['dallas','dallas, tx'],lat:32.7767,lon:-96.797,name:'Dallas, TX'},
+  {names:['houston','houston, tx'],lat:29.7604,lon:-95.3698,name:'Houston, TX'},
+  {names:['phoenix','phoenix, az'],lat:33.4484,lon:-112.074,name:'Phoenix, AZ'},
+  {names:['portland','portland, or'],lat:45.5152,lon:-122.6784,name:'Portland, OR'},
+  {names:['austin','austin, tx'],lat:30.2672,lon:-97.7431,name:'Austin, TX'},
+  {names:['london'],lat:51.5074,lon:-0.1278,name:'London, UK'},
+  {names:['paris'],lat:48.8566,lon:2.3522,name:'Paris, France'},
+  {names:['tokyo'],lat:35.6762,lon:139.6503,name:'Tokyo, Japan'},
+  {names:['keystone','keystone, co'],lat:39.6069,lon:-105.9522,name:'Keystone, CO'},
+  {names:['white plains','white plains, ny'],lat:41.034,lon:-73.7629,name:'White Plains, NY'},
+  {names:['tarrytown','tarrytown, ny'],lat:41.0762,lon:-73.8587,name:'Tarrytown, NY'},
+  {names:['peekskill','peekskill, ny'],lat:41.2901,lon:-73.9204,name:'Peekskill, NY'},
+];
+
+function setStatus(m){document.getElementById('status').textContent=m;}
+function setProgress(m){document.getElementById('progress').textContent=m;}
+
+/* ── Preferences: localStorage with debounced save + visual feedback ── */
+function flashSaved(keyId){
+  const map={vcKey:'vcSaved',tioKey:'tioSaved',windyKey:'windySaved'};
+  const el=document.getElementById(map[keyId]);
+  if(!el)return;
+  el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),1500);
+}
+
+function savePrefs(triggeredBy){
+  if(saveTimeout)clearTimeout(saveTimeout);
+  saveTimeout=setTimeout(()=>{
+    try{
+      const prefs={
+        city:document.getElementById('cityIn').value,
+        vc:document.getElementById('vcKey').value,
+        tio:document.getElementById('tioKey').value,
+        windy:document.getElementById('windyKey').value
+      };
+      localStorage.setItem('wxprefs',JSON.stringify(prefs));
+      if(triggeredBy && triggeredBy!=='cityIn') flashSaved(triggeredBy);
+      console.log('Prefs saved');
+    }catch(e){console.warn('Save failed:',e);}
+  },400);
+}
+
+function loadPrefs(){
+  try{
+    const p=JSON.parse(localStorage.getItem('wxprefs')||'{}');
+    if(p.city)document.getElementById('cityIn').value=p.city;
+    if(p.vc)document.getElementById('vcKey').value=p.vc;
+    if(p.tio)document.getElementById('tioKey').value=p.tio;
+    if(p.windy)document.getElementById('windyKey').value=p.windy;
+    const count=[p.vc,p.tio,p.windy].filter(Boolean).length;
+    document.getElementById('keyStatus').textContent=count?`(${count} key${count>1?'s':''} restored)`:'';
+    console.log('Prefs loaded');
+  }catch(e){console.log('No saved prefs:',e.message);}
+}
+
+['cityIn','vcKey','tioKey','windyKey'].forEach(id=>{
+  document.getElementById(id).addEventListener('input',()=>savePrefs(id));
+});
+
+/* ── Toggles & Cards ── */
+function initToggles(){
+  const c=document.getElementById('toggles');c.innerHTML='';
+  SOURCES.forEach(s=>{
+    const on=enabled.has(s.id);
+    const b=document.createElement('button');
+    b.className='src-toggle';
+    b.style.cssText=`border-color:${on?s.color:'#2d3148'};color:${on?s.color:'#4b5563'};background:${on?s.color+'22':'transparent'}`;
+    b.innerHTML=`<span class="pip" style="background:${s.color}"></span> ${s.label}`;
+    b.onclick=()=>{enabled.has(s.id)?enabled.delete(s.id):enabled.add(s.id);initToggles();renderChart();renderTable();};
+    c.appendChild(b);
+  });
+}
+
+function initCards(){
+  const c=document.getElementById('cards');c.innerHTML='';
+  SOURCES.forEach(s=>{
+    const d=document.createElement('div');d.className='model-card';d.id='card-'+s.id;
+    d.innerHTML=`<div class="src-lbl"><span class="pip" style="background:${s.color}"></span><span style="color:${s.color}">${s.label}</span></div><div class="big-temp" style="color:#374151">—</div><div class="cond">Waiting…</div>`;
+    c.appendChild(d);
+  });
+}
+
+function updateCard(id,data){
+  const el=document.getElementById('card-'+id);if(!el)return;
+  const s=SOURCES.find(x=>x.id===id);
+  if(data.error){
+    el.className='model-card err';
+    el.innerHTML=`<div class="src-lbl"><span class="pip" style="background:${s.color}"></span><span style="color:${s.color}">${s.label}</span></div><div class="err-msg">${data.error}</div>`;
+    return;
+  }
+  const t=data.current&&data.current.temp!==undefined?Math.round(data.current.temp)+'°F':'—';
+  const cond=(data.current&&data.current.condition)||'';
+  const d0=data.daily&&data.daily[0];
+  const hi=d0?Math.round(d0.hi??d0.tempMax??0)+'°':'—';
+  const lo=d0?Math.round(d0.lo??d0.tempMin??0)+'°':'—';
+  el.className='model-card';
+  el.innerHTML=`<div class="src-lbl"><span class="pip" style="background:${s.color}"></span><span style="color:${s.color}">${s.label}</span></div><div class="big-temp">${t}</div><div class="cond">${cond}</div><div class="hilo">H:${hi} / L:${lo}</div>`;
+}
+
+function updateMap(lat,lon,name){
+  const zoom=11;
+  const src=`https://www.openstreetmap.org/export/embed.html?bbox=${lon-0.08},${lat-0.05},${lon+0.08},${lat+0.05}&layer=mapnik&marker=${lat},${lon}`;
+  document.getElementById('mapFrame').src=src;
+  document.getElementById('mapLabel').textContent=name;
+  document.getElementById('mapBox').style.display='block';
+}
+
+/* ── Geocoding with local fallback ── */
+async function geocode(city){
+  const q=city.toLowerCase().trim();
+  // 1. Exact match in built-in DB
+  const exact=CITY_DB.find(c=>c.names.some(n=>n===q));
+  if(exact)return{lat:exact.lat,lon:exact.lon,name:exact.name};
+  // 2. Try Open-Meteo geocoding API
+  try{
+    const r=await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1&format=json`);
+    const d=await r.json();
+    if(d.results?.length)return{lat:d.results[0].latitude,lon:d.results[0].longitude,name:d.results[0].name+', '+(d.results[0].admin1||'')};
+  }catch(e){
+    console.warn('Geocoding API failed, trying partial match:',e.message);
+  }
+  // 3. Partial match fallback
+  const partial=CITY_DB.find(c=>c.names.some(n=>n.includes(q)||q.includes(n)));
+  if(partial)return{lat:partial.lat,lon:partial.lon,name:partial.name};
+  throw new Error('City not found. Try a major city name like "New York, NY".');
+}
+
+/* ── Data fetchers ── */
+async function fetchOM(lat,lon){
+  const r=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=temperature_2m,precipitation_probability&daily=temperature_2m_max,temperature_2m_min,weathercode&current_weather=true&temperature_unit=fahrenheit&forecast_days=7&timezone=auto`);
+  const d=await r.json();
+  const wmo={0:'Clear',1:'Mainly clear',2:'Partly cloudy',3:'Overcast',45:'Foggy',51:'Light drizzle',61:'Light rain',71:'Light snow',80:'Showers',95:'Thunderstorm'};
+  const nowIdx=d.hourly.time.findIndex(t=>t>=new Date().toISOString().slice(0,13))||0;
+  return{
+    current:{temp:d.current_weather.temperature,condition:wmo[d.current_weather.weathercode]||'Clear'},
+    daily:d.daily.time.map((t,i)=>({date:t,hi:d.daily.temperature_2m_max[i],lo:d.daily.temperature_2m_min[i]})),
+    hourly:d.hourly.time.slice(nowIdx,nowIdx+168).map((t,i)=>({t,temp:d.hourly.temperature_2m[nowIdx+i],precip:(d.hourly.precipitation_probability[nowIdx+i]||0)/100}))
+  };
+}
+
+async function fetchNWS(lat,lon){
+  const p=await fetch(`https://api.weather.gov/points/${lat.toFixed(4)},${lon.toFixed(4)}`);
+  const pj=await p.json();
+  const[fr,hr]=await Promise.all([fetch(pj.properties.forecast),fetch(pj.properties.forecastHourly)]);
+  const[fd,hd]=await Promise.all([fr.json(),hr.json()]);
+  const periods=fd.properties.periods;
+  const hourly=hd.properties.periods.slice(0,168);
+  const daily=[];
+  for(let i=0;i<periods.length-1;i+=2)daily.push({date:periods[i].startTime.slice(0,10),hi:periods[i].temperature,lo:periods[i+1]?.temperature||periods[i].temperature});
+  return{
+    current:{temp:hourly[0].temperature,condition:hourly[0].shortForecast},
+    daily,
+    hourly:hourly.map(h=>({t:h.startTime,temp:h.temperature,precip:(h.probabilityOfPrecipitation?.value||0)/100}))
+  };
+}
+
+async function fetchVC(lat,lon,key){
+  if(!key)return{error:'No API key'};
+  const r=await fetch(`https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/${lat},${lon}?unitGroup=us&key=${key}&contentType=json&include=hours,days,current`);
+  if(!r.ok)return{error:'Invalid key or limit reached'};
+  const d=await r.json();
+  const cur=d.currentConditions;
+  const allH=d.days.flatMap(day=>day.hours.map(h=>({t:`${day.datetime}T${h.datetime}`,temp:h.temp,precip:(h.precipprob||0)/100})));
+  return{current:{temp:cur.temp,condition:cur.conditions},daily:d.days.map(x=>({date:x.datetime,hi:x.tempmax,lo:x.tempmin})),hourly:allH.slice(0,168)};
+}
+
+async function fetchTIO(lat,lon,key){
+  if(!key)return{error:'No API key'};
+  const r=await fetch(`https://api.tomorrow.io/v4/weather/forecast?location=${lat},${lon}&apikey=${key}&units=imperial`);
+  if(!r.ok)return{error:'Invalid key or limit reached'};
+  const d=await r.json();
+  const conds={1000:'Clear',1100:'Mostly clear',1101:'Partly cloudy',1102:'Mostly cloudy',1001:'Cloudy',4000:'Drizzle',4001:'Rain',4200:'Light rain',5000:'Snow',8000:'Thunderstorm'};
+  return{
+    current:{temp:d.timelines.hourly[0].values.temperature,condition:conds[d.timelines.hourly[0].values.weatherCode]||'N/A'},
+    daily:d.timelines.daily.map(x=>({date:x.time.slice(0,10),hi:x.values.temperatureMax,lo:x.values.temperatureMin})),
+    hourly:d.timelines.hourly.slice(0,168).map(h=>({t:h.time,temp:h.values.temperature,precip:(h.values.precipitationProbability||0)/100}))
+  };
+}
+
+async function fetchWindy(lat,lon,key){
+  if(!key)return{error:'No API key'};
+  const body=JSON.stringify({lat,lon,model:'gfs',parameters:['temp'],levels:['surface'],key});
+  const headers={'Content-Type':'application/json'};
+  const proxies=[
+    'http://localhost:3131/windy',
+    'https://corsproxy.io/?url='+encodeURIComponent('https://api.windy.com/api/point-forecast/v2'),
+    'https://api.allorigins.win/raw?url='+encodeURIComponent('https://api.windy.com/api/point-forecast/v2'),
+  ];
+  let d=null;
+  for(const url of proxies){
+    try{
+      const r=await fetch(url,{method:'POST',headers,body});
+      if(r.ok){d=await r.json();break;}
+    }catch(e){console.warn('Windy proxy failed:',url,e.message);}
+  }
+  if(!d)return{error:'Windy unavailable (CORS — run local proxy on :3131)'};
+  const temps=d['temp-surface'],times=d.ts;
+  if(!temps||!times)return{error:'Unexpected Windy response'};
+  const toF=k=>parseFloat(((k-273.15)*9/5+32).toFixed(1));
+  const hourly=times.map((t,i)=>({t:new Date(t).toISOString(),temp:toF(temps[i]),precip:0}));
+  const dayMap={};
+  hourly.forEach(h=>{
+    const date=h.t.slice(0,10);
+    if(!dayMap[date])dayMap[date]={date,hi:-999,lo:999};
+    if(h.temp>dayMap[date].hi)dayMap[date].hi=h.temp;
+    if(h.temp<dayMap[date].lo)dayMap[date].lo=h.temp;
+  });
+  return{current:{temp:toF(temps[0]),condition:'GFS Model'},daily:Object.values(dayMap).slice(0,7),hourly};
+}
+
+/* ── Main fetch orchestrator ── */
+async function fetchAll(){
+  const city=document.getElementById('cityIn').value.trim();
+  if(!city)return;
+  const btn=document.getElementById('fetchBtn');
+  btn.disabled=true;btn.textContent='Loading…';
+  allData={};initCards();
+  setStatus('Geocoding…');
+  const vcKey=document.getElementById('vcKey').value.trim();
+  const tioKey=document.getElementById('tioKey').value.trim();
+  const windyKey=document.getElementById('windyKey').value.trim();
+  console.log('Keys:',{vc:!!vcKey,tio:!!tioKey,windy:!!windyKey});
+  let coords;
+  try{
+    coords=await geocode(city);
+    console.log('Geocode OK:',coords);
+  }catch(e){
+    setStatus('City not found: '+e.message);
+    btn.disabled=false;btn.textContent='Get Forecast';
+    return;
+  }
+  const{lat,lon,name}=coords;
+  updateMap(lat,lon,name);
+  setStatus('Fetching from all sources…');
+  const run=(id,fn)=>fn.then(d=>{
+    console.log(id,'OK');
+    allData[id]=d;updateCard(id,d);renderChart();renderTable();
+    setProgress(Object.keys(allData).length+'/5 sources loaded');
+  }).catch(e=>{
+    console.error(id,'ERROR',e);
+    allData[id]={error:e.message};updateCard(id,allData[id]);
+    setProgress(Object.keys(allData).length+'/5 sources loaded');
+  });
+  await Promise.allSettled([
+    run('om',fetchOM(lat,lon)),
+    run('nws',fetchNWS(lat,lon)),
+    run('vc',fetchVC(lat,lon,vcKey)),
+    run('tio',fetchTIO(lat,lon,tioKey)),
+    run('windy',fetchWindy(lat,lon,windyKey)),
+  ]);
+  setStatus('Updated '+new Date().toLocaleTimeString()+' · '+name);
+  setProgress('');
+  btn.disabled=false;btn.textContent='Get Forecast';
+}
+
+/* ── Chart ── */
+function setChartType(t,el){chartType=t;document.querySelectorAll('#typeTabs .tab').forEach(b=>b.classList.remove('on'));el.classList.add('on');renderChart();}
+function setHorizon(h,el){horizon=h;document.querySelectorAll('#horizonTabs .tab').forEach(b=>b.classList.remove('on'));el.classList.add('on');renderChart();}
+
+function renderChart(){
+  const datasets=[];
+  SOURCES.filter(s=>enabled.has(s.id)).forEach(s=>{
+    const d=allData[s.id];if(!d||d.error)return;
+    const pts=(d.hourly||[]).slice(0,horizon);if(!pts.length)return;
+    datasets.push({label:s.label,data:pts.map(p=>chartType==='temp'?Math.round(p.temp*10)/10:Math.round((p.precip||0)*100)),borderColor:s.color,backgroundColor:s.color+'33',borderWidth:2,pointRadius:pts.length>48?0:2,tension:0.3,fill:chartType==='precip'});
+  });
+  const first=SOURCES.find(s=>enabled.has(s.id)&&allData[s.id]&&!allData[s.id].error);
+  const labels=first?(allData[first.id].hourly||[]).slice(0,horizon).map(h=>{const dt=new Date(h.t);return horizon>48?dt.toLocaleDateString('en-US',{month:'short',day:'numeric'}):dt.toLocaleTimeString('en-US',{hour:'numeric',hour12:true});}):[];
+  const ctx=document.getElementById('mainChart');
+  if(chartInst)chartInst.destroy();
+  chartInst=new Chart(ctx,{type:'line',data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{mode:'index',intersect:false,callbacks:{label:c=>`${c.dataset.label}: ${c.parsed.y}${chartType==='temp'?'°F':'%'}`}}},scales:{x:{ticks:{color:'#4b5563',font:{size:11},maxTicksLimit:12},grid:{color:'#1e2133'}},y:{ticks:{color:'#4b5563',font:{size:11},callback:v=>v+(chartType==='temp'?'°':'%')},grid:{color:'#1e2133'}}},interaction:{mode:'index',intersect:false}}});
+}
+
+/* ── Table ── */
+function renderTable(){
+  const srcs=SOURCES.filter(s=>enabled.has(s.id)&&allData[s.id]&&!allData[s.id].error&&allData[s.id].daily&&allData[s.id].daily.length);
+  if(!srcs.length){document.getElementById('tableBox').style.display='none';return;}
+  const dateSet=new Set();srcs.forEach(s=>(allData[s.id].daily||[]).forEach(d=>dateSet.add(d.date)));
+  const dates=[...dateSet].sort().slice(0,7);
+  let html=`<table><thead><tr><th class="day-col">Day</th>`;
+  srcs.forEach(s=>html+=`<th><span class="pip" style="background:${s.color};display:inline-block;margin-right:4px;vertical-align:middle"></span><span style="color:${s.color}">${s.label}</span><br><span style="color:#374151;font-size:.65rem">Hi / Lo</span></th>`);
+  html+=`</tr></thead><tbody>`;
+  dates.forEach(date=>{
+    const dt=new Date(date+'T12:00:00');
+    html+=`<tr><td class="day-cell"><strong>${dt.toLocaleDateString('en-US',{weekday:'short'})}</strong><br><span style="font-size:.7rem;color:#4b5563">${dt.toLocaleDateString('en-US',{month:'short',day:'numeric'})}</span></td>`;
+    srcs.forEach(s=>{const d=(allData[s.id].daily||[]).find(x=>x.date===date);html+=d?`<td><span class="hi">${Math.round(d.hi??d.tempMax??0)}°</span> <span style="color:#374151">/</span> <span class="lo">${Math.round(d.lo??d.tempMin??0)}°</span></td>`:`<td style="color:#2d3148">—</td>`;});
+    html+=`</tr>`;
+  });
+  html+=`</tbody></table>`;
+  document.getElementById('tableWrap').innerHTML=html;document.getElementById('tableBox').style.display='block';
+}
+
+/* ── Init ── */
+initToggles();
+initCards();
+loadPrefs();
+document.getElementById('cityIn').addEventListener('keydown',e=>{if(e.key==='Enter')fetchAll();});
+</script>
+</body>
+</html>

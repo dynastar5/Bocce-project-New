@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/Peter/AppData/Roaming/Claude/local-agent-mode-sessions/skills-plugin/9d4fceb3-34c2-4674-8463-0d4b10118697/c57a8bae-865c-4974-9dc5-abdcaa5e20da/skills/docx/**)",
+      "Bash(python scripts/office/unpack.py \"C:/Users/Peter/OneDrive/Documents/Claude Files/June team website starter code.docx\" /tmp/june_unpacked/)",
+      "Bash(python3 -c \"import zipfile; z = zipfile.ZipFile\\('C:/Users/Peter/OneDrive/Documents/Claude Files/June team website starter code.docx'\\); content = z.read\\('word/document.xml'\\).decode\\('utf-8'\\); print\\(content[:5000]\\)\")",
+      "Bash(where python3 *)",
+      "Bash(where node *)",
+      "Bash(where powershell *)",
+      "PowerShell(npx prettier --version 2>&1)",
+      "Bash(node C:/Temp/fix_encoding.js)",
+      "Bash(node C:/Temp/fix_script.js)",
+      "Bash(npm install *)",
+      "Bash(node fix_script2.js)",
+      "Bash(node -e ' *)",
+      "mcp__Claude_Preview__preview_start"
+    ]
+  }
+}
