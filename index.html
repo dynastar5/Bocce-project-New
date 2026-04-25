@@ -903,6 +903,106 @@
     .ticker-track { font-size: 1.2rem; }
     .ball-1, .ball-2, .ball-3, .ball-4, .ball-5 { display: none; }
   }
+
+/* ====================== FIND US ====================== */
+.find-us {
+  padding: 6rem 5vw;
+  background: var(--cream);
+  border-bottom: 3px solid var(--ink);
+}
+.find-us-container { max-width: 1100px; margin: 0 auto; }
+.map-option-label {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--bocce-green);
+  margin-bottom: 1.5rem;
+  padding: 0.5rem 1rem;
+  border: 1px dashed var(--bocce-green);
+  display: inline-block;
+}
+.venue-card {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  border: 2px solid var(--ink);
+  box-shadow: 8px 8px 0 var(--ink);
+  overflow: hidden;
+}
+.venue-info {
+  padding: 2.5rem;
+  background: var(--cream-deep);
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+.venue-name {
+  font-family: 'Bungee Shade', cursive;
+  font-size: 2.2rem;
+  color: var(--bocce-green);
+  line-height: 1;
+}
+.venue-address {
+  font-family: 'DM Serif Display', serif;
+  font-style: italic;
+  font-size: 1.1rem;
+  color: var(--ink);
+  opacity: 0.8;
+}
+.venue-details { display: flex; flex-direction: column; gap: 0.8rem; margin-top: 0.5rem; }
+.venue-detail-row {
+  display: flex;
+  gap: 0.8rem;
+  align-items: flex-start;
+  font-family: 'Fraunces', serif;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+.vd-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 0.1rem; }
+.directions-btn {
+  display: inline-block;
+  margin-top: 0.5rem;
+  padding: 1rem 1.8rem;
+  background: var(--bocce-green);
+  color: var(--cream);
+  font-family: 'Bungee', cursive;
+  font-size: 1rem;
+  letter-spacing: 0.1em;
+  text-decoration: none;
+  border: 2px solid var(--ink);
+  box-shadow: 4px 4px 0 var(--ink);
+  transition: all 0.2s ease;
+  align-self: flex-start;
+}
+.directions-btn:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 var(--tomato);
+  background: var(--gold);
+  color: var(--ink);
+}
+.venue-map-embed { height: 420px; border-left: 2px solid var(--ink); }
+.venue-map-embed iframe { height: 100%; display: block; }
+.map-full { border: 2px solid var(--ink); box-shadow: 8px 8px 0 var(--ink); overflow: hidden; }
+.map-full iframe { display: block; }
+.map-full-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  background: var(--ink);
+  color: var(--cream);
+  font-family: 'Space Mono', monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.15em;
+}
+.map-full-footer a { color: var(--gold); text-decoration: none; }
+.map-full-footer a:hover { color: var(--tomato); }
+@media (max-width: 700px) {
+  .venue-card { grid-template-columns: 1fr; }
+  .venue-map-embed { height: 280px; border-left: none; border-top: 2px solid var(--ink); }
+}
+
 </style>
 </head>
 <body>
@@ -1415,205 +1515,7 @@
     });
   });
 
-  //<!-- ============ FIND US ============ -->
-<section class="find-us">
-  <div class="find-us-container">
-    <div class="section-label">Get there · Don't be late</div>
-    <h2 class="section-title">Find <em>the lawn.</em></h2>
-
-    <!-- OPTION A: Styled map card with directions button -->
-    <div class="map-option-label">⬇ Option A: Styled Card</div>
-    <div class="venue-card">
-      <div class="venue-info">
-        <div class="venue-name">The Lawn Club</div>
-        <div class="venue-address">1 Fulton Street · The Seaport · New York, NY 10038</div>
-        <div class="venue-details">
-          <div class="venue-detail-row">
-            <span class="vd-icon">🚇</span>
-            <span><strong>Subway:</strong> A/C/J/Z/2/3/4/5 to Fulton St · 1 block walk</span>
-          </div>
-          <div class="venue-detail-row">
-            <span class="vd-icon">🚌</span>
-            <span><strong>Bus:</strong> M15 to Fulton/Water St</span>
-          </div>
-          <div class="venue-detail-row">
-            <span class="vd-icon">🚗</span>
-            <span><strong>Driving:</strong> Street parking limited · Pier 17 garage nearby</span>
-          </div>
-          <div class="venue-detail-row">
-            <span class="vd-icon">🕔</span>
-            <span><strong>Doors open:</strong> 5:00 PM · Don't make us start without you</span>
-          </div>
-        </div>
-        <a class="directions-btn" href="https://maps.google.com/?q=The+Lawn+Club+1+Fulton+St+New+York+NY" target="_blank">
-          📍 Get Directions
-        </a>
-      </div>
-      <div class="venue-map-embed">
-        <iframe
-          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3024.345!2d-74.0046!3d40.7063!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c25a1659b7a5e7%3A0x9a7f9c9b8e1b2a3c!2sThe%20Lawn%20Club%2C%201%20Fulton%20St%2C%20New%20York%2C%20NY%2010038!5e0!3m2!1sen!2sus!4v1"
-          width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy"
-          referrerpolicy="no-referrer-when-downgrade">
-        </iframe>
-      </div>
-    </div>
-
-    <!-- OPTION B: Full-width embedded map only -->
-    <div class="map-option-label" style="margin-top:4rem;">⬇ Option B: Full-width Map</div>
-    <div class="map-full">
-      <iframe
-        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3024.345!2d-74.0046!3d40.7063!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c25a1659b7a5e7%3A0x9a7f9c9b8e1b2a3c!2sThe%20Lawn%20Club%2C%201%20Fulton%20St%2C%20New%20York%2C%20NY%2010038!5e0!3m2!1sen!2sus!4v1"
-        width="100%" height="500" style="border:0;" allowfullscreen="" loading="lazy"
-        referrerpolicy="no-referrer-when-downgrade">
-      </iframe>
-      <div class="map-full-footer">
-        <span>📍 The Lawn Club · 1 Fulton St · The Seaport</span>
-        <a href="https://maps.google.com/?q=The+Lawn+Club+1+Fulton+St+New+York+NY" target="_blank">Open in Google Maps →</a>
-      </div>
-    </div>
-
-  </div>
-</section>
-
-/* ====================== FIND US ====================== */
-.find-us {
-  padding: 6rem 5vw;
-  background: var(--cream);
-  border-bottom: 3px solid var(--ink);
-}
-
-.find-us-container {
-  max-width: 1100px;
-  margin: 0 auto;
-}
-
-.map-option-label {
-  font-family: 'Space Mono', monospace;
-  font-size: 0.75rem;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--bocce-green);
-  margin-bottom: 1.5rem;
-  padding: 0.5rem 1rem;
-  border: 1px dashed var(--bocce-green);
-  display: inline-block;
-}
-
-/* --- Option A: Styled card --- */
-.venue-card {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0;
-  border: 2px solid var(--ink);
-  box-shadow: 8px 8px 0 var(--ink);
-  overflow: hidden;
-}
-
-.venue-info {
-  padding: 2.5rem;
-  background: var(--cream-deep);
-  display: flex;
-  flex-direction: column;
-  gap: 1.2rem;
-}
-
-.venue-name {
-  font-family: 'Bungee Shade', cursive;
-  font-size: 2.2rem;
-  color: var(--bocce-green);
-  line-height: 1;
-}
-
-.venue-address {
-  font-family: 'DM Serif Display', serif;
-  font-style: italic;
-  font-size: 1.1rem;
-  color: var(--ink);
-  opacity: 0.8;
-}
-
-.venue-details {
-  display: flex;
-  flex-direction: column;
-  gap: 0.8rem;
-  margin-top: 0.5rem;
-}
-
-.venue-detail-row {
-  display: flex;
-  gap: 0.8rem;
-  align-items: flex-start;
-  font-family: 'Fraunces', serif;
-  font-size: 0.95rem;
-  line-height: 1.4;
-}
-
-.vd-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 0.1rem; }
-
-.directions-btn {
-  display: inline-block;
-  margin-top: 0.5rem;
-  padding: 1rem 1.8rem;
-  background: var(--bocce-green);
-  color: var(--cream);
-  font-family: 'Bungee', cursive;
-  font-size: 1rem;
-  letter-spacing: 0.1em;
-  text-decoration: none;
-  border: 2px solid var(--ink);
-  box-shadow: 4px 4px 0 var(--ink);
-  transition: all 0.2s ease;
-  align-self: flex-start;
-}
-
-.directions-btn:hover {
-  transform: translate(-2px, -2px);
-  box-shadow: 6px 6px 0 var(--tomato);
-  background: var(--gold);
-  color: var(--ink);
-}
-
-.venue-map-embed {
-  height: 420px;
-  border-left: 2px solid var(--ink);
-}
-
-.venue-map-embed iframe { height: 100%; display: block; }
-
-/* --- Option B: Full-width map --- */
-.map-full {
-  border: 2px solid var(--ink);
-  box-shadow: 8px 8px 0 var(--ink);
-  overflow: hidden;
-}
-
-.map-full iframe { display: block; }
-
-.map-full-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 1.5rem;
-  background: var(--ink);
-  color: var(--cream);
-  font-family: 'Space Mono', monospace;
-  font-size: 0.75rem;
-  letter-spacing: 0.15em;
-}
-
-.map-full-footer a {
-  color: var(--gold);
-  text-decoration: none;
-}
-
-.map-full-footer a:hover { color: var(--tomato); }
-
-@media (max-width: 700px) {
-  .venue-card { grid-template-columns: 1fr; }
-  .venue-map-embed { height: 280px; border-left: none; border-top: 2px solid var(--ink); }
-}
-
-  // ====== PARALLAX ON BALLS ======
+// ====== PARALLAX ON BALLS ======
   document.addEventListener('mousemove', (e) => {
     const balls = document.querySelectorAll('.hero .ball');
     const x = (e.clientX / window.innerWidth - 0.5) * 20;
@@ -1625,5 +1527,68 @@
   });
 </script>
 
+  <!-- ============ FIND US ============ -->
+  <section class="find-us">
+    <div class="find-us-container">
+      <div class="section-label">Get there · Don't be late</div>
+      <h2 class="section-title">Find <em>the lawn.</em></h2>
+
+      <div class="map-option-label">⬇ Option A: Styled Card</div>
+      <div class="venue-card">
+        <div class="venue-info">
+          <div class="venue-name">The Lawn Club</div>
+          <div class="venue-address">1 Fulton Street · The Seaport · New York, NY 10038</div>
+          <div class="venue-details">
+            <div class="venue-detail-row">
+              <span class="vd-icon">🚇</span>
+              <span><strong>Subway:</strong> A/C/J/Z/2/3/4/5 to Fulton St · 1 block walk</span>
+            </div>
+            <div class="venue-detail-row">
+              <span class="vd-icon">🚌</span>
+              <span><strong>Bus:</strong> M15 to Fulton/Water St</span>
+            </div>
+            <div class="venue-detail-row">
+              <span class="vd-icon">🚗</span>
+              <span><strong>Driving:</strong> Street parking limited · Pier 17 garage nearby</span>
+            </div>
+            <div class="venue-detail-row">
+              <span class="vd-icon">🕔</span>
+              <span><strong>Doors open:</strong> 5:00 PM · Don't make us start without you</span>
+            </div>
+          </div>
+          <a class="directions-btn" href="https://maps.google.com/?q=The+Lawn+Club+1+Fulton+St+New+York+NY" target="_blank">
+            📍 Get Directions
+          </a>
+        </div>
+        <div class="venue-map-embed">
+          <iframe
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3024.345!2d-74.0046!3d40.7063!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c25a1659b7a5e7%3A0x9a7f9c9b8e1b2a3c!2sThe%20Lawn%20Club%2C%201%20Fulton%20St%2C%20New%20York%2C%20NY%2010038!5e0!3m2!1sen!2sus!4v1"
+            width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade">
+          </iframe>
+        </div>
+      </div>
+
+      <div class="map-option-label" style="margin-top:4rem;">⬇ Option B: Full-width Map</div>
+      <div class="map-full">
+        <iframe
+          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3024.345!2d-74.0046!3d40.7063!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c25a1659b7a5e7%3A0x9a7f9c9b8e1b2a3c!2sThe%20Lawn%20Club%2C%201%20Fulton%20St%2C%20New%20York%2C%20NY%2010038!5e0!3m2!1sen!2sus!4v1"
+          width="100%" height="500" style="border:0;" allowfullscreen="" loading="lazy"
+          referrerpolicy="no-referrer-when-downgrade">
+        </iframe>
+        <div class="map-full-footer">
+          <span>📍 The Lawn Club · 1 Fulton St · The Seaport</span>
+          <a href="https://maps.google.com/?q=The+Lawn+Club+1+Fulton+St+New+York+NY" target="_blank">Open in Google Maps →</a>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <footer>
+    <p>THE GREAT BOCCE INVITATIONAL · JUNE 11, 2026 · THE SEAPORT NYC</p>
+  </footer>
+
+</main>
 </body>
 </html>
