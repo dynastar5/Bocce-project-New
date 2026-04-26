@@ -988,6 +988,38 @@
   .venue-map-embed { height: 280px; border-left: none; border-top: 2px solid var(--ink); }
 }
 
+/* ====================== RESPONSIVE ====================== */
+@media (max-width: 900px) {
+  .hero-bottom { grid-template-columns: repeat(2, 1fr); }
+  .detail-grid { grid-template-columns: repeat(2, 1fr); }
+  .menu-grid { grid-template-columns: repeat(2, 1fr); }
+  .venue-card { grid-template-columns: 1fr; }
+  .venue-map-embed { height: 320px; border-left: none; border-top: 2px solid var(--ink); }
+}
+
+@media (max-width: 600px) {
+  .hero { padding: 1.5rem 4vw 3rem; }
+  .hero-bottom { grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+  .detail-grid { grid-template-columns: 1fr; }
+  .menu-grid { grid-template-columns: 1fr; }
+  .roster-grid { grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+  .player-name { font-size: 1.2rem; }
+  .rule-row { grid-template-columns: 1fr; gap: 0.5rem; }
+  .rule-num { font-size: 2rem; }
+  .section-title { font-size: clamp(2rem, 8vw, 3.5rem); }
+  .venue-card { grid-template-columns: 1fr; }
+  .venue-map-embed { height: 260px; border-left: none; border-top: 2px solid var(--ink); }
+  .venue-info { padding: 1.5rem; }
+  .ticker-track { font-size: 1.2rem; }
+  .ball-1, .ball-2, .ball-3, .ball-4, .ball-5 { display: none; }
+}
+
+@media (max-width: 400px) {
+  .roster-grid { grid-template-columns: 1fr; }
+  .countdown-unit { min-width: 60px; padding: 0.6rem; }
+  .countdown-unit .num { font-size: 1.5rem; }
+}
+
 </style>
 </head>
 <body>
