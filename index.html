@@ -21,6 +21,11 @@
     --white-ball: #f9f3e3;
   }
 
+html, body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
   html { scroll-behavior: smooth; }
@@ -111,12 +116,14 @@
 
   .title {
     font-family: 'Bungee Shade', cursive;
-    font-size: clamp(3.2rem, 11vw, 10rem);
+    font-size: clamp(2rem, 8vw, 10rem);
     line-height: 0.85;
     color: var(--bocce-green);
     letter-spacing: -0.02em;
     margin: 0.5rem 0;
     text-shadow: 6px 6px 0 rgba(214,73,51,0.25);
+    word-break: break-word;
+    overflow-wrap: break-word;
   }
 
   .title .line { display: block; opacity: 0; animation: fadeUp 0.8s forwards; }
