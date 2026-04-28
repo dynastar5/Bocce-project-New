@@ -1,0 +1,9 @@
+Bocce instructions
+
+PS C:\Users\Peter\OneDrive\Documents\Claude Files>
+
+To push the update in powershell:
+
+git add .
+git commit -m "ticker updated - update this text for the change"
+git push
