@@ -556,6 +556,19 @@ html, body {
     color: var(--ink);
   }
 
+<!-- ============ PLAY THE GAME ============ -->
+<section class="game-section">
+  <div class="section-label">Warm up your arm</div>
+  <h2 class="section-title">Play <em>Bocce.</em></h2>
+  <p style="text-align:center; font-family:'DM Serif Display',serif; font-style:italic; font-size:1.2rem; margin-bottom:2rem;">Think you've got what it takes? Prove it before June 11.</p>
+  <div style="text-align:center;">
+    <a href="bocce-game.html" class="rsvp-button" style="display:inline-block; text-decoration:none;">
+      🎳 PLAY NOW
+    </a>
+  </div>
+</section>
+
+
   /* ====================== ROSTER ====================== */
   .roster {
     padding: 6rem 5vw;
@@ -1027,6 +1040,18 @@ html, body {
   .countdown-unit { min-width: 60px; padding: 0.6rem; }
   .countdown-unit .num { font-size: 1.5rem; }
 }
+
+.game-section {
+  padding: 6rem 5vw;
+  background: var(--bocce-green);
+  color: var(--cream);
+  text-align: center;
+  border-bottom: 3px solid var(--ink);
+}
+.game-section .section-label { color: var(--gold); }
+.game-section .section-label::before, .game-section .section-label::after { background: var(--gold); }
+.game-section .section-title { color: var(--cream); }
+.game-section .section-title em { color: var(--gold); }
 
 </style>
 </head>

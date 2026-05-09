@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bocce — Practice Court</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --court-light: #6b8a4a;
+    --court-mid: #4f6e35;
+    --court-dark: #38501f;
+    --line: #f0ead8;
+    --team-a: #c93838;
+    --team-b: #2d5f8a;
+    --pallino: #f8f4e8;
+    --bg: #14180f;
+    --panel: #1c2116;
+    --ink: #e8ecd8;
+    --ink-dim: #8a9070;
+    --accent: #d4c548;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Cormorant Garamond', serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background-image:
+      radial-gradient(circle at 20% 10%, rgba(212,197,72,0.06), transparent 50%),
+      radial-gradient(circle at 80% 90%, rgba(45,95,138,0.05), transparent 50%);
+  }
+  .frame {
+    width: 100%;
+    max-width: 720px;
+    background: var(--panel);
+    border: 1px solid #2f3a24;
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.5);
+  }
+  header {
+    padding: 22px 28px 18px;
+    border-bottom: 1px solid #2f3a24;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .title {
+    font-size: 32px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+  .title em {
+    color: var(--accent);
+    font-style: italic;
+    font-weight: 500;
+  }
+  .subtitle {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+  }
+  .scoreboard {
+    display: flex;
+    gap: 20px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    flex-wrap: wrap;
+  }
+  .score {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .swatch {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+  }
+  .swatch.a { background: var(--team-a); box-shadow: inset -2px -2px 4px rgba(0,0,0,0.4); }
+  .swatch.b { background: var(--team-b); box-shadow: inset -2px -2px 4px rgba(0,0,0,0.4); }
+  .score-num { color: var(--accent); font-size: 16px; font-weight: 500; }
+
+  .stage {
+    position: relative;
+    background: #0a0d07;
+  }
+  canvas {
+    display: block;
+    width: 100%;
+    height: auto;
+    cursor: crosshair;
+  }
+
+  .controls {
+    padding: 18px 28px;
+    border-top: 1px solid #2f3a24;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+    background: #181c12;
+  }
+  .turn {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+  }
+  .turn span {
+    color: var(--ink);
+    font-weight: 500;
+  }
+  .turn .who {
+    display: inline-block;
+    padding: 3px 9px;
+    border-radius: 2px;
+    margin-left: 4px;
+    color: white;
+  }
+  .turn .who.a { background: var(--team-a); }
+  .turn .who.b { background: var(--team-b); }
+
+  .actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  button {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 9px 16px;
+    background: transparent;
+    color: var(--ink);
+    border: 1px solid #3d4a2e;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  button:hover { background: #222818; border-color: var(--accent); color: var(--accent); }
+  button.primary {
+    background: var(--accent);
+    color: var(--bg);
+    border-color: var(--accent);
+  }
+  button.primary:hover { background: #e8d650; color: var(--bg); }
+  button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .instructions {
+    padding: 14px 28px;
+    border-top: 1px solid #2f3a24;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: var(--ink-dim);
+    text-align: center;
+    line-height: 1.7;
+  }
+  .instructions strong { color: var(--ink); font-weight: 500; }
+
+  .toast {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(20,24,15,0.95);
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    padding: 10px 22px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    border-radius: 2px;
+    opacity: 0;
+    transition: opacity 0.4s;
+    pointer-events: none;
+    z-index: 10;
+  }
+  .toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+  <div class="frame">
+    <header>
+      <div>
+        <div class="title">Bocce <em>— Practice Court</em></div>
+        <div class="subtitle">Aim · Power · Roll</div>
+      </div>
+      <div class="scoreboard">
+        <div class="score"><span class="swatch a"></span>Strategy <span class="score-num" id="scoreA">0</span></div>
+        <div class="score"><span class="swatch b"></span>Governance <span class="score-num" id="scoreB">0</span></div>
+        <div class="score">Frame <span class="score-num" id="frameNum">1</span></div>
+      </div>
+    </header>
+
+    <div class="stage">
+      <canvas id="court"></canvas>
+      <div class="toast" id="toast"></div>
+    </div>
+
+    <div class="controls">
+      <div class="turn">
+        Throwing: <span class="who" id="turnIndicator">Strategy</span>
+        &nbsp;·&nbsp; Balls left: <span id="ballsLeft">4 / 4</span>
+      </div>
+      <div class="actions">
+        <button id="leftBtn" title="Move ball">◀</button>
+        <button id="rightBtn" title="Move ball">▶</button>
+        <button id="endFrameBtn">End Frame</button>
+        <button id="resetBtn">New Game</button>
+      </div>
+    </div>
+
+    <div class="instructions">
+      Each frame, the starting team <strong>throws the pallino</strong> first, then plays. <strong>Position</strong> with ◀ ▶ (or arrows), <strong>drag</strong> to aim.
+      Balls that don't cross the foul line are <strong>cleared</strong>.
+    </div>
+  </div>
+
+<script>
+(() => {
+  const canvas = document.getElementById('court');
+  const ctx = canvas.getContext('2d');
+
+  // Orientation: vertical (mobile, throw bottom→top) or horizontal (desktop, throw left→right)
+  const isHorizontal = window.matchMedia('(min-width: 760px)').matches;
+  if (isHorizontal) {
+    canvas.width = 1080;
+    canvas.height = 420;
+  } else {
+    canvas.width = 600;
+    canvas.height = 900;
+  }
+  const W = canvas.width, H = canvas.height;
+
+  const BALL_R = 16;
+  const PALLINO_R = 9;
+  const FRICTION = 0.985;
+  const MIN_SPEED = 0.05;
+  const MAX_POWER = 22;
+
+  // Pallino starts at "far end" of the court
+  function makePallino() {
+    if (isHorizontal) {
+      return {
+        x: W * 0.78 + (Math.random() - 0.5) * 80,
+        y: H / 2 + (Math.random() - 0.5) * 120,
+        r: PALLINO_R, vx: 0, vy: 0, mass: 0.4
+      };
+    } else {
+      return {
+        x: W / 2 + (Math.random() - 0.5) * 120,
+        y: H * 0.18 + Math.random() * 80,
+        r: PALLINO_R, vx: 0, vy: 0, mass: 0.4
+      };
+    }
+  }
+
+  let pallino = makePallino();
+  let balls = [];
+  let turn = 'A';
+  let ballsThrown = { A: 0, B: 0 };
+  const BALLS_PER_TEAM = 4;
+  let scoreA = 0, scoreB = 0, frame = 1;
+
+  let aiming = false;
+  let aimStart = null;
+  let aimEnd = null;
+  let ballOffset = 0; // horizontal offset along throwing line
+  let phase = 'pallino'; // 'pallino' = throwing the jack, 'play' = throwing balls
+
+  function resetFrame(keepScore = true) {
+    balls = [];
+    ballsThrown = { A: 0, B: 0 };
+    turn = 'A';
+    phase = 'pallino';
+    aiming = false;
+    ballOffset = 0;
+    // Place pallino at throwing position, ready to be thrown
+    const start = getCurrentBallStart();
+    pallino = { x: start.x, y: start.y, r: PALLINO_R, vx: 0, vy: 0, mass: 0.4 };
+    if (!keepScore) { scoreA = 0; scoreB = 0; frame = 1; }
+    updateUI();
+  }
+
+  function startNewGame() {
+    scoreA = 0; scoreB = 0; frame = 1;
+    resetFrame(true);
+    showToast('New game · Strategy throws pallino');
+  }
+
+  function getCurrentBallStart() {
+    if (isHorizontal) {
+      const baseY = H / 2 + (turn === 'A' ? -30 : 30);
+      const y = Math.max(30, Math.min(H - 30, baseY + ballOffset));
+      const x = 60;
+      return { x, y };
+    } else {
+      const baseX = W / 2 + (turn === 'A' ? -40 : 40);
+      const x = Math.max(40, Math.min(W - 40, baseX + ballOffset));
+      const y = H - 60;
+      return { x, y };
+    }
+  }
+
+  function updateUI() {
+    document.getElementById('scoreA').textContent = scoreA;
+    document.getElementById('scoreB').textContent = scoreB;
+    document.getElementById('frameNum').textContent = frame;
+    const ti = document.getElementById('turnIndicator');
+    if (phase === 'pallino') {
+      ti.textContent = (turn === 'A' ? 'Strategy' : 'Governance') + ' · pallino';
+    } else {
+      ti.textContent = turn === 'A' ? 'Strategy' : 'Governance';
+    }
+    ti.className = 'who ' + (turn === 'A' ? 'a' : 'b');
+    const left = BALLS_PER_TEAM - ballsThrown[turn];
+    document.getElementById('ballsLeft').textContent = `${left} / ${BALLS_PER_TEAM}`;
+  }
+
+  function showToast(msg, duration = 2200) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(t._timer);
+    t._timer = setTimeout(() => t.classList.remove('show'), duration);
+  }
+
+  function isMoving() {
+    if (Math.abs(pallino.vx) > MIN_SPEED || Math.abs(pallino.vy) > MIN_SPEED) return true;
+    return balls.some(b => Math.abs(b.vx) > MIN_SPEED || Math.abs(b.vy) > MIN_SPEED);
+  }
+
+  function nextTurn() {
+    const aLeft = BALLS_PER_TEAM - ballsThrown.A;
+    const bLeft = BALLS_PER_TEAM - ballsThrown.B;
+    if (aLeft === 0 && bLeft === 0) {
+      scoreFrame();
+      return;
+    }
+    if (aLeft === 0) { turn = 'B'; updateUI(); return; }
+    if (bLeft === 0) { turn = 'A'; updateUI(); return; }
+
+    const closestA = closestBallDist('A');
+    const closestB = closestBallDist('B');
+    if (closestA === null) { turn = 'A'; }
+    else if (closestB === null) { turn = 'B'; }
+    else if (closestA <= closestB) { turn = 'B'; }
+    else { turn = 'A'; }
+    updateUI();
+  }
+
+  function closestBallDist(team) {
+    let min = null;
+    for (const b of balls) {
+      if (b.team !== team) continue;
+      const d = Math.hypot(b.x - pallino.x, b.y - pallino.y);
+      if (min === null || d < min) min = d;
+    }
+    return min;
+  }
+
+  function scoreFrame() {
+    const sorted = balls.map(b => ({ ...b, d: Math.hypot(b.x - pallino.x, b.y - pallino.y) }))
+                        .sort((a, b) => a.d - b.d);
+    if (sorted.length === 0) return;
+    const winner = sorted[0].team;
+    let pts = 0;
+    for (const b of sorted) {
+      if (b.team === winner) pts++;
+      else break;
+    }
+    if (winner === 'A') scoreA += pts;
+    else scoreB += pts;
+    showToast(`${winner === 'A' ? 'Strategy' : 'Governance'} wins frame · +${pts}`, 2800);
+    frame++;
+    setTimeout(() => resetFrame(true), 1800);
+  }
+
+  function resolveCollision(a, b) {
+    const dx = b.x - a.x, dy = b.y - a.y;
+    const dist = Math.hypot(dx, dy);
+    const minDist = a.r + b.r;
+    if (dist === 0 || dist >= minDist) return;
+
+    const nx = dx / dist, ny = dy / dist;
+    const overlap = minDist - dist;
+
+    const totalMass = a.mass + b.mass;
+    a.x -= nx * overlap * (b.mass / totalMass);
+    a.y -= ny * overlap * (b.mass / totalMass);
+    b.x += nx * overlap * (a.mass / totalMass);
+    b.y += ny * overlap * (a.mass / totalMass);
+
+    const dvx = a.vx - b.vx, dvy = a.vy - b.vy;
+    const vn = dvx * nx + dvy * ny;
+    if (vn <= 0) return;
+    const restitution = 0.85;
+    const impulse = (2 * vn) / totalMass * restitution;
+    a.vx -= impulse * b.mass * nx;
+    a.vy -= impulse * b.mass * ny;
+    b.vx += impulse * a.mass * nx;
+    b.vy += impulse * a.mass * ny;
+  }
+
+  function step() {
+    const all = [pallino, ...balls];
+
+    for (const b of all) {
+      b.x += b.vx;
+      b.y += b.vy;
+      b.vx *= FRICTION;
+      b.vy *= FRICTION;
+      if (Math.abs(b.vx) < MIN_SPEED) b.vx = 0;
+      if (Math.abs(b.vy) < MIN_SPEED) b.vy = 0;
+
+      const padTop = 20, padBot = H - 20, padL = 20, padR = W - 20;
+      if (b.x - b.r < padL) { b.x = padL + b.r; b.vx = -b.vx * 0.6; }
+      if (b.x + b.r > padR) { b.x = padR - b.r; b.vx = -b.vx * 0.6; }
+      if (b.y - b.r < padTop) { b.y = padTop + b.r; b.vy = -b.vy * 0.6; }
+      if (b.y + b.r > padBot) { b.y = padBot - b.r; b.vy = -b.vy * 0.6; }
+    }
+
+    for (let i = 0; i < all.length; i++) {
+      for (let j = i + 1; j < all.length; j++) {
+        resolveCollision(all[i], all[j]);
+      }
+    }
+
+    if (!isMoving() && pendingTurnSwitch) {
+      pendingTurnSwitch = false;
+      if (justThrewPallino) {
+        justThrewPallino = false;
+        const pallinoFouled = isHorizontal ? (pallino.x <= W / 2) : (pallino.y >= H / 2);
+        if (pallinoFouled) {
+          // Foul — go back to pallino phase, reset pallino to throw line
+          phase = 'pallino';
+          ballOffset = 0;
+          const start = getCurrentBallStart();
+          pallino.x = start.x;
+          pallino.y = start.y;
+          pallino.vx = 0; pallino.vy = 0;
+          showToast('Pallino foul · re-throw');
+        }
+        updateUI();
+      } else {
+        checkFouls();
+        nextTurn();
+      }
+    }
+  }
+
+  let justThrewPallino = false;
+
+  function checkFouls() {
+    // Remove any ball that didn't cross past the center foul line
+    const removed = [];
+    balls = balls.filter(b => {
+      const fouled = isHorizontal ? (b.x <= W / 2) : (b.y >= H / 2);
+      if (fouled) {
+        removed.push(b.team);
+        return false;
+      }
+      return true;
+    });
+    if (removed.length > 0) {
+      const team = removed[0] === 'A' ? 'Strategy' : 'Governance';
+      showToast(`${team} foul · ball cleared`);
+    }
+  }
+
+  let pendingTurnSwitch = false;
+
+  function drawCourt() {
+    const grad = isHorizontal
+      ? ctx.createLinearGradient(0, 0, 0, H)
+      : ctx.createLinearGradient(0, 0, W, 0);
+    grad.addColorStop(0, '#4a6a30');
+    grad.addColorStop(0.5, '#5a7a3a');
+    grad.addColorStop(1, '#446028');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, W, H);
+
+    ctx.save();
+    ctx.globalAlpha = 0.1;
+    for (let i = 0; i < 700; i++) {
+      ctx.fillStyle = i % 2 ? '#2a3818' : '#a8c478';
+      ctx.fillRect(Math.random() * W, Math.random() * H, 1.5, 1.5);
+    }
+    ctx.restore();
+
+    ctx.strokeStyle = '#2a3818';
+    ctx.lineWidth = 6;
+    ctx.strokeRect(3, 3, W - 6, H - 6);
+
+    if (isHorizontal) {
+      // Throwing line at left
+      ctx.strokeStyle = 'rgba(240,234,216,0.4)';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([6, 6]);
+      ctx.beginPath();
+      ctx.moveTo(110, 30);
+      ctx.lineTo(110, H - 30);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Center foul line
+      ctx.strokeStyle = 'rgba(212,197,72,0.45)';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([8, 8]);
+      ctx.beginPath();
+      ctx.moveTo(W / 2, 25);
+      ctx.lineTo(W / 2, H - 25);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.fillStyle = 'rgba(212,197,72,0.5)';
+      ctx.font = '10px "DM Mono", monospace';
+      ctx.textAlign = 'left';
+      ctx.fillText('FOUL LINE', W / 2 + 6, 18);
+    } else {
+      // Throwing line at bottom
+      ctx.strokeStyle = 'rgba(240,234,216,0.4)';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([6, 6]);
+      ctx.beginPath();
+      ctx.moveTo(30, H - 110);
+      ctx.lineTo(W - 30, H - 110);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Center foul line
+      ctx.strokeStyle = 'rgba(212,197,72,0.45)';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([8, 8]);
+      ctx.beginPath();
+      ctx.moveTo(25, H / 2);
+      ctx.lineTo(W - 25, H / 2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.fillStyle = 'rgba(212,197,72,0.5)';
+      ctx.font = '10px "DM Mono", monospace';
+      ctx.textAlign = 'left';
+      ctx.fillText('FOUL LINE', 30, H / 2 - 6);
+    }
+  }
+
+  function drawBall(b, color) {
+    ctx.beginPath();
+    ctx.arc(b.x + 3, b.y + 4, b.r, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(0,0,0,0.35)';
+    ctx.fill();
+
+    const g = ctx.createRadialGradient(b.x - b.r * 0.4, b.y - b.r * 0.4, b.r * 0.1, b.x, b.y, b.r);
+    g.addColorStop(0, lighten(color, 0.4));
+    g.addColorStop(0.6, color);
+    g.addColorStop(1, darken(color, 0.4));
+    ctx.beginPath();
+    ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+    ctx.fillStyle = g;
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.arc(b.x - b.r * 0.35, b.y - b.r * 0.35, b.r * 0.25, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+    ctx.fill();
+  }
+
+  function lighten(hex, amt) {
+    const c = hexToRgb(hex);
+    return `rgb(${Math.min(255, c.r + 255 * amt)}, ${Math.min(255, c.g + 255 * amt)}, ${Math.min(255, c.b + 255 * amt)})`;
+  }
+  function darken(hex, amt) {
+    const c = hexToRgb(hex);
+    return `rgb(${Math.max(0, c.r - 255 * amt)}, ${Math.max(0, c.g - 255 * amt)}, ${Math.max(0, c.b - 255 * amt)})`;
+  }
+  function hexToRgb(hex) {
+    const m = hex.match(/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i);
+    return m ? { r: parseInt(m[1], 16), g: parseInt(m[2], 16), b: parseInt(m[3], 16) } : { r: 255, g: 255, b: 255 };
+  }
+
+  function drawAimGuide() {
+    if (!aiming || !aimStart || !aimEnd) return;
+    const start = getCurrentBallStart();
+    const dx = aimStart.x - aimEnd.x;
+    const dy = aimStart.y - aimEnd.y;
+    const dist = Math.min(Math.hypot(dx, dy), 200);
+    const angle = Math.atan2(dy, dx);
+    const power = (dist / 200) * MAX_POWER;
+
+    const endX = start.x + Math.cos(angle) * dist * 1.5;
+    const endY = start.y + Math.sin(angle) * dist * 1.5;
+
+    ctx.save();
+    ctx.strokeStyle = `rgba(240, 234, 216, ${0.3 + (power / MAX_POWER) * 0.5})`;
+    ctx.lineWidth = 2;
+    ctx.setLineDash([8, 6]);
+    ctx.beginPath();
+    ctx.moveTo(start.x, start.y);
+    ctx.lineTo(endX, endY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    const powerPct = power / MAX_POWER;
+    ctx.fillStyle = 'rgba(0,0,0,0.5)';
+    ctx.fillRect(start.x - 25, start.y + 28, 50, 6);
+    ctx.fillStyle = powerPct > 0.7 ? '#c93838' : powerPct > 0.4 ? '#d4c548' : '#7fb84a';
+    ctx.fillRect(start.x - 24, start.y + 29, 48 * powerPct, 4);
+    ctx.restore();
+  }
+
+  function draw() {
+    drawCourt();
+    drawBall(pallino, '#f8f4e8');
+
+    for (const b of balls) {
+      drawBall(b, b.team === 'A' ? '#c93838' : '#2d5f8a');
+    }
+
+    // Pulsing ring on the active "ready to throw" ball
+    if (!isMoving()) {
+      let centerX, centerY, ringR;
+      if (phase === 'pallino') {
+        // Pulse around the pallino at the throwing line
+        centerX = pallino.x;
+        centerY = pallino.y;
+        ringR = PALLINO_R + 4;
+      } else if (ballsThrown[turn] < BALLS_PER_TEAM) {
+        // Show ghost team ball at throwing line
+        const start = getCurrentBallStart();
+        const ghost = { x: start.x, y: start.y, r: BALL_R };
+        ctx.save();
+        ctx.globalAlpha = 0.85;
+        drawBall(ghost, turn === 'A' ? '#c93838' : '#2d5f8a');
+        ctx.restore();
+        centerX = start.x;
+        centerY = start.y;
+        ringR = BALL_R + 4;
+      }
+      if (centerX !== undefined) {
+        const pulse = (Math.sin(Date.now() / 300) + 1) / 2;
+        ctx.strokeStyle = `rgba(240,234,216,${0.3 + pulse * 0.4})`;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, ringR + pulse * 3, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+    }
+
+    drawAimGuide();
+  }
+
+  function loop() {
+    step();
+    draw();
+    requestAnimationFrame(loop);
+  }
+
+  function getMousePos(e) {
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const cx = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+    const cy = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
+    return { x: cx * scaleX, y: cy * scaleY };
+  }
+
+  function onDown(e) {
+    e.preventDefault();
+    if (isMoving()) return;
+    if (phase === 'play' && ballsThrown[turn] >= BALLS_PER_TEAM) return;
+    const pos = getMousePos(e);
+    const start = getCurrentBallStart();
+    const d = Math.hypot(pos.x - start.x, pos.y - start.y);
+    if (d < 300) {
+      aiming = true;
+      aimStart = { x: start.x, y: start.y };
+      aimEnd = pos;
+    }
+  }
+
+  function onMove(e) {
+    if (!aiming) return;
+    e.preventDefault();
+    aimEnd = getMousePos(e);
+  }
+
+  function onUp(e) {
+    if (!aiming) return;
+    e.preventDefault();
+    aiming = false;
+    const start = getCurrentBallStart();
+    const dx = aimStart.x - aimEnd.x;
+    const dy = aimStart.y - aimEnd.y;
+    const dist = Math.min(Math.hypot(dx, dy), 200);
+    if (dist < 10) { aimStart = null; aimEnd = null; return; }
+    const angle = Math.atan2(dy, dx);
+    const power = (dist / 200) * MAX_POWER;
+
+    if (phase === 'pallino') {
+      // Throw the pallino itself
+      pallino.x = start.x;
+      pallino.y = start.y;
+      pallino.vx = Math.cos(angle) * power;
+      pallino.vy = Math.sin(angle) * power;
+      phase = 'play';
+      justThrewPallino = true;
+      pendingTurnSwitch = true; // trigger post-throw resolution
+    } else {
+      const ball = {
+        x: start.x,
+        y: start.y,
+        vx: Math.cos(angle) * power,
+        vy: Math.sin(angle) * power,
+        r: BALL_R,
+        team: turn,
+        mass: 1
+      };
+      balls.push(ball);
+      ballsThrown[turn]++;
+      pendingTurnSwitch = true;
+    }
+    aimStart = null;
+    aimEnd = null;
+    ballOffset = 0;
+    updateUI();
+  }
+
+  canvas.addEventListener('mousedown', onDown);
+  window.addEventListener('mousemove', onMove);
+  window.addEventListener('mouseup', onUp);
+  canvas.addEventListener('touchstart', onDown, { passive: false });
+  canvas.addEventListener('touchmove', onMove, { passive: false });
+  canvas.addEventListener('touchend', onUp, { passive: false });
+
+  document.getElementById('endFrameBtn').addEventListener('click', () => {
+    if (balls.length === 0) { showToast('No balls thrown yet'); return; }
+    if (isMoving()) { showToast('Wait for balls to stop'); return; }
+    scoreFrame();
+  });
+  document.getElementById('resetBtn').addEventListener('click', startNewGame);
+
+  function nudge(dir) {
+    if (isMoving()) return;
+    if (phase === 'play' && ballsThrown[turn] >= BALLS_PER_TEAM) return;
+    ballOffset = Math.max(-220, Math.min(220, ballOffset + dir * 20));
+    if (phase === 'pallino') {
+      const start = getCurrentBallStart();
+      pallino.x = start.x;
+      pallino.y = start.y;
+    }
+  }
+  document.getElementById('leftBtn').addEventListener('click', () => nudge(-1));
+  document.getElementById('rightBtn').addEventListener('click', () => nudge(1));
+
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); nudge(-1); }
+    else if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); nudge(1); }
+  });
+
+  resetFrame(true);
+  loop();
+})();
+</script>
+</body>
+</html>
